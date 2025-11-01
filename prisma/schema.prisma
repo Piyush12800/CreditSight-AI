@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  //directUrl = env("DIRECT_DATABASE_URL") // optional, if using proxy
+}
+
+model User {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  name            String?
+  createdAt       DateTime          @default(now())
+  credits         Credit[]
+  aiConversations AiConversation[]
+  financialGoals  FinancialGoal[]
+}
+
+model Credit {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime     @default(now())
+  description String?
+  type        CreditType   // Using enum for better type safety
+  category    String?      // e.g., "Food", "Transport", "Entertainment", "Salary", "Investment"
+  amount      Float
+  score       Int?
+  notes       String?      // Additional notes for AI context
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([userId, category])
+}
+
+enum CreditType {
+  CREDIT      // Income/money in
+  DEBIT       // Expense/money out
+  LOAN        // Borrowed money
+  EMI         // Monthly installment payment
+  CARD        // Credit card transaction
+  INVESTMENT  // Investment transaction
+  TRANSFER    // Money transfer
+}
+
+model AiConversation {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt       String   @db.Text
+  response     String   @db.Text
+  analysisType String?  // "general", "spending", "savings", "budget", "goals"
+  createdAt    DateTime @default(now())
+  
+  @@index([userId, createdAt])
+}
+
+model FinancialGoal {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?  @db.Text
+  targetAmount Float
+  currentAmount Float   @default(0)
+  deadline     DateTime?
+  status       GoalStatus @default(ACTIVE)
+  category     String?  // "savings", "investment", "debt_payoff", "purchase"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([userId, status])
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
