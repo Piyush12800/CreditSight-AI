@@ -19,6 +19,7 @@
     "canvas": "^3.2.0",
     "clsx": "^2.1.1",
     "jimp": "^1.6.0",
+    "llama-cloud-services": "^0.3.10",
     "lucide-react": "^0.548.0",
     "next": "16.0.1",
     "pdf-parse": "^2.4.5",
